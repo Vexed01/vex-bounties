@@ -6,8 +6,8 @@ import discord
 from rapidfuzz import process
 from redbot.core import commands
 from redbot.core.utils import deduplicate_iterables
-from redbot.core.utils.predicates import ReactionPredicate
 from redbot.core.utils.menus import start_adding_reactions
+from redbot.core.utils.predicates import ReactionPredicate
 
 from .scraper import FullCPU, PassMarkScrapeAPI
 
@@ -65,9 +65,7 @@ class CPU(commands.Cog):
                     "Something went wrong finding a match - probably a scraping error",
                     exc_info=e,
                 )
-                await ctx.send(
-                    "Something went wrong getting data from PassMark. Try again later."
-                )
+                await ctx.send("Something went wrong getting data from PassMark. Try again later.")
                 return
             if match is None:
                 await ctx.send(
@@ -81,9 +79,7 @@ class CPU(commands.Cog):
                 full_cpu = await self.api.get_cpu_info(partial_cpu)
             except Exception as e:
                 log.error("Something went wrong getting the full CPU info", exc_info=e)
-                await ctx.send(
-                    "Something went wrong getting data from PassMark. Try again later."
-                )
+                await ctx.send("Something went wrong getting data from PassMark. Try again later.")
                 return
 
             embed = discord.Embed()
@@ -110,9 +106,7 @@ class CPU(commands.Cog):
         """
         unmatched_cpus = cpus.split(",")
         if len(unmatched_cpus) != 2:
-            await ctx.send(
-                "Sorry, I can only compare 2 CPUs. Separate them with commas (`,`)."
-            )
+            await ctx.send("Sorry, I can only compare 2 CPUs. Separate them with commas (`,`).")
             return
 
         matched_cpus: List[FullCPU] = []
@@ -143,9 +137,7 @@ class CPU(commands.Cog):
                 try:
                     full_cpu = await self.api.get_cpu_info(partial_cpu)
                 except Exception as e:
-                    log.error(
-                        "Something went wrong getting the full CPU info", exc_info=e
-                    )
+                    log.error("Something went wrong getting the full CPU info", exc_info=e)
                     await ctx.send(
                         "Something went wrong getting data from PassMark. Try again later."
                     )
@@ -155,17 +147,13 @@ class CPU(commands.Cog):
                 for spec in full_cpu["details"].keys():
                     available_specs.append(spec)
 
-        available_specs = deduplicate_iterables(
-            available_specs
-        )  # cant use set bc retain order
+        available_specs = deduplicate_iterables(available_specs)  # cant use set bc retain order
 
         embed = discord.Embed()
         embed.colour = await ctx.embed_colour()
         embed.title = "CPU Comparison"
 
-        embed.add_field(
-            name="Specifications", value="_ _\n" * 2 + "\n".join(available_specs)
-        )
+        embed.add_field(name="Specifications", value="_ _\n" * 2 + "\n".join(available_specs))
 
         for cpu in matched_cpus:
             speclist = ""
@@ -200,10 +188,12 @@ class CPU(commands.Cog):
             desc += f"{i + 1}. [{partial_cpu['name']}]({partial_cpu['url']})\n"
 
         embed.description = desc
-        embed.set_footer(text=f"Use {ctx.clean_prefix}cpu <name> or click the reactions to view a CPU.")
+        embed.set_footer(
+            text=f"Use {ctx.clean_prefix}cpu <name> or click the reactions to view a CPU."
+        )
 
         message: discord.Message = await ctx.send(embed=embed)
-        emojis = ReactionPredicate.NUMBER_EMOJIS[1:len(matches)+1]
+        emojis = ReactionPredicate.NUMBER_EMOJIS[1 : len(matches) + 1]
         start_adding_reactions(message, emojis)
 
         pred = ReactionPredicate.with_emojis(emojis, message, ctx.author)
@@ -215,4 +205,3 @@ class CPU(commands.Cog):
 
         name = matches[pred.result][0]
         await self.cpu(ctx, cpu=name)
-

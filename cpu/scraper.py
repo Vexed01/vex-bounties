@@ -35,9 +35,7 @@ class PassMarkScrapeAPI:
 
     @cached(TTLCache(maxsize=1, ttl=60 * 60 * 4))  # 4h cache
     async def get_full_list(self) -> List[PartialCPU]:
-        async with self.session.get(
-            "https://www.cpubenchmark.net/cpu_list.php"
-        ) as resp:
+        async with self.session.get("https://www.cpubenchmark.net/cpu_list.php") as resp:
             soup = bs4.BeautifulSoup(await resp.text(), "html.parser")
 
         table = soup.find("table", {"class": "cpulist"})
@@ -73,7 +71,10 @@ class PassMarkScrapeAPI:
         cpu_mark = soup.find("div", {"class": "right-desc"})
         details["Average CPU Mark:"] = cpu_mark.select("span")[1].text
         details["Single Thread Rating:"] = (
-            str(cpu_mark).split("Single Thread Rating:</strong>")[1].split("<br/>")[0].split("<sup>")[0]
+            str(cpu_mark)
+            .split("Single Thread Rating:</strong>")[1]
+            .split("<br/>")[0]
+            .split("<sup>")[0]
         )
 
         for spec in nicespecs:
