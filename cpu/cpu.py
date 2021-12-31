@@ -195,9 +195,9 @@ class CPU(commands.Cog):
         desc = ""
         for i, result in enumerate(matches):
             partial_cpu = all_cpus[result[2]]
-            desc += f"{i + 1}. {partial_cpu['name']}\n"
+            desc += f"{i + 1}. [{partial_cpu['name']}]({partial_cpu['url']})\n"
 
         embed.description = desc
         embed.set_footer(text=f"Use `{ctx.clean_prefix}cpu <name>` to view a CPU.")
 
-        await ctx.send(embed=embed)
+        message = await ctx.send(embed=embed)

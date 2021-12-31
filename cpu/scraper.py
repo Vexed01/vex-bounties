@@ -73,7 +73,7 @@ class PassMarkScrapeAPI:
         cpu_mark = soup.find("div", {"class": "right-desc"})
         details["Average CPU Mark:"] = cpu_mark.select("span")[1].text
         details["Single Thread Rating:"] = (
-            str(cpu_mark).split("Single Thread Rating:</strong>")[1].split("<sup>")[0]
+            str(cpu_mark).split("Single Thread Rating:</strong>")[1].split("<br/>")[0]
         )
 
         for spec in nicespecs:
