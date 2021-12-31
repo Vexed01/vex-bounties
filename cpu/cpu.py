@@ -6,6 +6,8 @@ import discord
 from rapidfuzz import process
 from redbot.core import commands
 from redbot.core.utils import deduplicate_iterables
+from redbot.core.utils.predicates import ReactionPredicate
+from redbot.core.utils.menus import start_adding_reactions
 
 from .scraper import FullCPU, PassMarkScrapeAPI
 
@@ -37,11 +39,11 @@ class CPU(commands.Cog):
             log.error(f"Failed to get the initial CPU list", exc_info=e)
 
     async def find_matches(self, cpu: str) -> List[Tuple[str, float, int]]:
-        """Find the top 10 matches for a CPU name, if any."""
+        """Find the top 9 matches for a CPU name, if any."""
         cpus = await self.api.get_full_list()  # this is cached
         cpu_names = [cpu["name"] for cpu in cpus]
 
-        matches = process.extract(cpu, cpu_names, score_cutoff=90, limit=10)
+        matches = process.extract(cpu, cpu_names, score_cutoff=80, limit=9)
         return matches
 
     async def find_match(self, cpu: str) -> Optional[Tuple[str, float, int]]:
@@ -49,7 +51,7 @@ class CPU(commands.Cog):
         cpus = await self.api.get_full_list()  # this is cached
         cpu_names = [cpu["name"] for cpu in cpus]
 
-        match = process.extractOne(cpu, cpu_names, score_cutoff=95)
+        match = process.extractOne(cpu, cpu_names, score_cutoff=90)
         return match
 
     @commands.command()
@@ -180,7 +182,7 @@ class CPU(commands.Cog):
 
     @commands.command()
     async def cpusearch(self, ctx: commands.Context, *, query: str) -> None:
-        """Get up to 10 CPUs from a search query."""
+        """Get up to 9 CPUs from a search query."""
         all_cpus = await self.api.get_full_list()  # this is cached
 
         matches = await self.find_matches(query)
@@ -198,6 +200,19 @@ class CPU(commands.Cog):
             desc += f"{i + 1}. [{partial_cpu['name']}]({partial_cpu['url']})\n"
 
         embed.description = desc
-        embed.set_footer(text=f"Use `{ctx.clean_prefix}cpu <name>` to view a CPU.")
+        embed.set_footer(text=f"Use {ctx.clean_prefix}cpu <name> or click the reactions to view a CPU.")
 
-        message = await ctx.send(embed=embed)
+        message: discord.Message = await ctx.send(embed=embed)
+        emojis = ReactionPredicate.NUMBER_EMOJIS[1:len(matches)+1]
+        start_adding_reactions(message, emojis)
+
+        pred = ReactionPredicate.with_emojis(emojis, message, ctx.author)
+        try:
+            await self.bot.wait_for("reaction_add", check=pred, timeout=60)
+        except asyncio.TimeoutError:
+            await message.clear_reactions()
+            return
+
+        name = matches[pred.result][0]
+        await self.cpu(ctx, cpu=name)
+
