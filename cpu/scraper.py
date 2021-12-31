@@ -1,5 +1,4 @@
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, TypedDict
+from typing import Dict, List, Tuple, TypedDict
 
 import aiohttp
 import bs4
