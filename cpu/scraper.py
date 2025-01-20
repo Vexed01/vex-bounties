@@ -69,12 +69,11 @@ class PassMarkScrapeAPI:
         details = {}
 
         cpu_mark = soup.find("div", {"class": "right-desc"})
-        details["Average CPU Mark:"] = cpu_mark.select("span")[1].text
+        details["Multithread Rating:"] = (
+            str(cpu_mark).split("Multithread Rating</div>")[1].split('">')[1].split("</div>")[0]
+        )
         details["Single Thread Rating:"] = (
-            str(cpu_mark)
-            .split("Single Thread Rating:</strong>")[1]
-            .split("<br/>")[0]
-            .split("<sup>")[0]
+            str(cpu_mark).split("Single Thread Rating</div>")[1].split('">')[1].split("</div>")[0]
         )
 
         for spec in nicespecs:
@@ -91,7 +90,7 @@ class PassMarkScrapeAPI:
             if value.startswith(": "):
                 value = value[2:]
 
-            details[name] = value
+            details[name] = value.replace("<br>", "\n").replace("</br>", "").replace("<br/>", "")
 
         footer = soup.find_all("div", {"class": "desc-foot"})
         imlazy = str(footer).split("CPU First Seen on Charts:")[1]
